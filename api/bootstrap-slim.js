@@ -1,7 +1,11 @@
 export default async function handler(req, res) {
   try {
     const response = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/', {
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      }
     });
 
     if (!response.ok) throw new Error(`FPL API returned ${response.status}`);
@@ -9,25 +13,10 @@ export default async function handler(req, res) {
 
     // Accurate list of 2025/26 EPL teams
     const validTeams = [
-      'Arsenal',
-      'Aston Villa',
-      'Bournemouth',
-      'Brentford',
-      'Brighton & Hove Albion',
-      'Burnley',
-      'Chelsea',
-      'Crystal Palace',
-      'Everton',
-      'Fulham',
-      'Ipswich Town',
-      'Leicester City',
-      'Liverpool',
-      'Manchester City',
-      'Manchester United',
-      'Newcastle United',
-      'Nottingham Forest',
-      'Tottenham Hotspur',
-      'West Ham United',
+      'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton & Hove Albion',
+      'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich Town',
+      'Leicester City', 'Liverpool', 'Manchester City', 'Manchester United',
+      'Newcastle United', 'Nottingham Forest', 'Tottenham Hotspur', 'West Ham United',
       'Wolverhampton Wanderers'
     ];
 
@@ -36,26 +25,9 @@ export default async function handler(req, res) {
       .filter(team => validTeams.includes(team.name))
       .map(team => team.id);
 
-    // Manual transfer corrections (player ID → new team ID)
-    // You can add more here if FPL hasn't updated yet
-    const transferCorrections = {
-      // Example: Kudus to Tottenham
-      // Find Tottenham's team ID dynamically from data.teams
-      1234: data.teams.find(t => t.name === 'Tottenham Hotspur')?.id // Replace 1234 with Kudus' actual player.id
-    };
-
-    // Slimmed-down, corrected player list
+    // Slimmed player list
     const slimmedPlayers = data.elements
-      // Keep only players in valid EPL teams OR corrected transfers
-      .filter(player => validTeamIds.includes(player.team) || transferCorrections[player.id])
-      // Apply transfer corrections
-      .map(player => {
-        if (transferCorrections[player.id]) {
-          return { ...player, team: transferCorrections[player.id] };
-        }
-        return player;
-      })
-      // Return only essential fields
+      .filter(player => validTeamIds.includes(player.team))
       .map(player => ({
         id: player.id,
         first_name: player.first_name,
